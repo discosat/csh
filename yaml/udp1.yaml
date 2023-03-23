@@ -1,0 +1,7 @@
+- name: "UDP"
+  driver: "udp"
+  addr: 1
+  netmask: 8
+  server: "127.0.0.1"
+  listen_port: 9700
+  remote_port: 9701
