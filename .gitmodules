@@ -16,3 +16,9 @@
 [submodule "lib/csp_ftp"]
 	path = lib/csp_ftp
 	url = https://github.com/discosat/csp_ftp
+[submodule "lib/disco_dep"]
+	path = lib/disco_dep
+	url = https://github.com/discosat/disco_dep
+[submodule "lib/csp_ftp_rust"]
+	path = lib/csp_ftp_rust
+	url = https://github.com/discosat/csp_ftp
