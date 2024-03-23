@@ -1,5 +1,7 @@
 project('csh', 'c', subproject_dir: 'lib', default_options: [
 	'csp_ippc:slash=true', 
+	'csp_proc:slash=true',
+	'csp_proc:RESERVED_PROC_SLOTS=10',
 	'buildtype=debug', 
 	'c_std=gnu11', 
 	'b_lto=false',
@@ -43,6 +45,7 @@ slash_dep = dependency('slash', fallback: ['slash', 'slash_dep'], required: true
 param_dep = dependency('param', fallback: ['param', 'param_dep'], required: true).as_link_whole()
 lua_dep = dependency('lua5.4', required: false)
 csp_ippc_dep = dependency('csp_ippc', fallback: ['csp_ippc', 'csp_ippc_dep'], required: true).as_link_whole()
+csp_proc_dep = dependency('csp_proc', fallback: ['csp_proc', 'csp_proc_dep'], required: true).as_link_whole()
 
 csh_sources = [
 	'src/main.c',
@@ -69,14 +72,14 @@ csh_sources = [
 	'src/vts.c',
 	'src/walkdir.c',
     'src/victoria_metrics.c', 
-    'src/loki.c', 
+    'src/loki.c',
 ]
 
 csh_sources += vcs_tag(input: files('src/version.c.in'), output: 'version.c', command: ['git', 'describe', '--always', '--dirty=+'])
 
 
 csh = executable('csh', csh_sources,
-	dependencies : [slash_dep, csp_dep, param_dep, lua_dep, curl_dep, csp_ippc_dep],
+	dependencies : [slash_dep, csp_dep, param_dep, lua_dep, curl_dep, csp_ippc_dep, csp_proc_dep],
 	link_args : ['-Wl,-Map=csh.map', '-lm', '-Wl,--export-dynamic', '-ldl'],  # -ldl is needed on ARM/raspbarian
 	install : true,
 )

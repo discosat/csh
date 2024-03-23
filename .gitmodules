@@ -19,3 +19,6 @@
 [submodule "lib/csp_ippc"]
 	path = lib/csp_ippc
 	url = git@github.com:Lindharden/csp_ippc.git
+[submodule "lib/csp_proc"]
+	path = lib/csp_proc
+	url = git@github.com:discosat/csp_proc.git
