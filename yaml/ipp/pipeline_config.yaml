@@ -1,7 +1,7 @@
 - order: 1
   param_id: 1
-  name: flip_horizontally
+  name: demosaic
   
 - order: 2
   param_id: 3
-  name: bw_convert
+  name: encoder
