@@ -12,3 +12,9 @@
 [submodule "lib/csp_proc"]
 	path = lib/csp_proc
 	url = git@github.com:discosat/csp_proc.git
+[submodule "lib/param"]
+	path = lib/param
+	url = https://github.com/discosat/libparam.git
+[submodule "lib/csp_ippc"]
+	path = lib/csp_ippc
+	url = https://github.com/discosat/csp_ippc.git
