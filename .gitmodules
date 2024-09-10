@@ -11,7 +11,7 @@
 	url = https://github.com/yaml/libyaml.git
 [submodule "lib/csp_proc"]
 	path = lib/csp_proc
-	url = git@github.com:discosat/csp_proc.git
+	url = https://github.com/discosat/csp_proc.git
 [submodule "lib/param"]
 	path = lib/param
 	url = https://github.com/discosat/libparam.git
