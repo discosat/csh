@@ -29,7 +29,7 @@ export PATH=~/.local/bin:$PATH
 
 Build:
 ```
-git clone --recurse-submodules https://github.com/spaceinventor/csh.git
+git clone --recurse-submodules https://github.com/discosat/csh.git
 cd csh
 ./configure
 ./install
