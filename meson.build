@@ -25,7 +25,7 @@ project('csh', 'c', subproject_dir: 'lib', default_options: [
 	'param:collector=false', 
 	'param:list_dynamic=true'])
 
-add_global_arguments('-I../include', '-w',	 '-Wno-error=implicit-function-declaration', '-Wno-error=incompatible-pointer-types', language: 'c')
+add_global_arguments('-I../include', '-Wno-error=implicit-function-declaration', '-Wno-error=incompatible-pointer-types', language: 'c')
 
 curl_dep = dependency('libcurl', required: false)
 if not curl_dep.found()
