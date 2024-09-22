@@ -25,7 +25,7 @@ project('csh', 'c', subproject_dir: 'lib', default_options: [
 	'param:collector=false', 
 	'param:list_dynamic=true'])
 
-add_global_arguments('-I../include', language: 'c')
+add_global_arguments('-I../include', '-w',	 '-Wno-error=implicit-function-declaration', '-Wno-error=incompatible-pointer-types', language: 'c')
 
 curl_dep = dependency('libcurl', required: false)
 if not curl_dep.found()
@@ -82,6 +82,11 @@ csh = executable('csh', csh_sources,
 	dependencies : [slash_dep, csp_dep, param_dep, lua_dep, curl_dep, csp_proc_dep], # csp_ippc_dep
 	link_args : ['-Wl,-Map=csh.map', '-lm', '-Wl,--export-dynamic', '-ldl'],  # -ldl is needed on ARM/raspbarian
 	install : true,
+)
+
+cshlib = shared_library('csh', csh_sources,
+	dependencies : [slash_dep, csp_dep, param_dep, lua_dep, curl_dep, csp_proc_dep], # csp_ippc_dep
+	link_args : ['-Wl,-Map=csh.map', '-lm', '-Wl,--export-dynamic', '-ldl'],  # -ldl is needed on ARM/raspbarian
 )
 
 custom_target('size', output: ['dummy.txt'], command: [find_program('size'), csh.full_path()], depends: csh, build_by_default: true)
