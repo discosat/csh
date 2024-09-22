@@ -42,6 +42,9 @@ static int csp_init_cmd(struct slash *slash) {
     char * revision = NULL;
 	int version = 2;
 	int dedup = 3;
+    char * s_temp = NULL;
+
+    char s[65] = {0};
 
     optparse_t * parser = optparse_new("csp init", "");
     optparse_add_help(parser);
@@ -68,11 +71,21 @@ static int csp_init_cmd(struct slash *slash) {
         hostname = info.nodename;
     }
 
-    if (model == NULL)
+    if (model == NULL) {
         model = info.version;
+    } else {
+        s_temp = malloc(65);
+        strncpy(s_temp, model, 65);
+        model = s_temp;
+    }
 
-    if (revision == NULL)
+    if (revision == NULL) {
         revision = info.release;
+    } else {
+        s_temp = malloc(65);
+        strncpy(s_temp, revision, 65);
+        revision = s_temp;
+    }
 
     printf("  Version %d\n", version);
     printf("  Hostname: %s\n", hostname);
