@@ -16,9 +16,10 @@ But the software will be called `csh` (pronounced 'seashell') from now on.
 
 Requirements: libcurl4-openssl-dev build-essential, libsocketcan-dev, can-utils, libzmq3-dev, libyaml-dev, meson, ninja, pkg-config, fonts-powerline, python3-pip, libelf-dev, libbsd-dev libprotobuf-c-dev
 
+These can be installed on Ubuntu with:
+
 ```
-sudo apt install libcurl4-openssl-dev git build-essential libsocketcan-dev can-utils libzmq3-dev libyaml-dev pkg-config fonts-powerline python3-pip libelf-dev libbsd-dev libprotobuf-c-dev
-sudo pip3 install meson ninja
+sudo apt install libcurl4-openssl-dev git build-essential libsocketcan-dev can-utils libzmq3-dev libyaml-dev pkg-config fonts-powerline python3-pip libelf-dev libbsd-dev libprotobuf-c-dev meson ninja-build
 ```
 
 Sometimes needed:
