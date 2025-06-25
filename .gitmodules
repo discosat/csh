@@ -10,3 +10,6 @@
   path = lib/slash
   url = https://github.com/spaceinventor/slash
   branch = master
+[submodule "lib/csp_ippc"]
+	path = lib/csp_ippc
+	url = https://github.com/discosat/csp_ippc.git
