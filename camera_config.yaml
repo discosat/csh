@@ -1,0 +1,27 @@
+# Camera configuration for DiscoCameraController
+# This file can be uploaded using: camera config upload camera_config.yaml
+
+# Image capture settings
+capture:
+  resolution:
+    width: 1920
+    height: 1080
+  format: jpeg
+  quality: 85
+  
+# Sensor settings  
+sensor:
+  exposure_mode: auto
+  iso: 100
+  white_balance: auto
+  
+# Processing pipeline
+processing:
+  demosaic: true
+  denoise: true
+  sharpening: medium
+  
+# Output settings
+output:
+  compression: medium
+  metadata: true
