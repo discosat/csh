@@ -212,7 +212,15 @@ bool hk_param_sniffer(csp_packet_t * packet) {
 
 	/* Protocol has a header size of 5, and RDP adds 5 bytes to the end of the packet if activated */
 	size_t header_size = 5;
-	size_t data_len = packet->length - header_size - ((packet->id.flags & CSP_FRDP) ? 5 : 0);
+	size_t overhead = header_size + ((packet->id.flags & CSP_FRDP) ? 5 : 0);
+	/* Guard the unsigned subtraction. Any packet on sport 13 shorter than this overhead
+	 * (e.g. a short RDP control/ack frame, or another service that happens to share the
+	 * port) would underflow data_len to ~SIZE_MAX and make the mpack reader below walk
+	 * off the buffer -> segfault. Too short to carry a param payload => skip. */
+	if (packet->length < overhead) {
+		return false;
+	}
+	size_t data_len = packet->length - overhead;
 	param_queue_t queue;
 	param_queue_init(&queue, &packet->data[header_size], data_len, data_len, PARAM_QUEUE_TYPE_SET, 2);
 	queue.last_node = packet->id.src;
