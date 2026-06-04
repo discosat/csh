@@ -75,6 +75,27 @@ wsl --install
 After a reboot, you can then start the application WSL to get a virtual Ubuntu environment and follow the guidelines for installing CSH in Linux as above. Windows by default does not forward USB devices to WSL entities. To enable USB forwarding, follow the guide in https://learn.microsoft.com/en-us/windows/wsl/connect-usb.
 
 
+## Testing
+
+Host tests live in `tests/` and run through meson:
+
+```
+meson test -C builddir                  # whole suite
+meson test -C builddir hk_sniffer_tests # one test
+```
+
+`hk_sniffer_tests` is a regression for a `size_t` underflow in `hk_param_sniffer()`:
+any packet on source port 13 shorter than the param header overhead (e.g. a short
+RDP control/ack frame) underflowed the payload length and walked the mpack reader
+off the buffer, segfaulting the param sniffer under `prometheus start`. The test
+feeds the real function such packets and asserts they are skipped.
+
+Note: meson build directories are not relocatable. If the tree was first configured
+under a different absolute path (a moved or renamed checkout), `meson setup
+--reconfigure` fails with `FileNotFoundError` on a stale `meson-private` path.
+Recreate the build dir instead of reconfiguring: `rm -rf builddir && ./configure`.
+
+
 ## Extension support
 
 src/slash_apm.c defines a command, apm load, for loading a shared library as an APM, and a command, ap, info, for listing loaded APMs.
