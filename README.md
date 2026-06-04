@@ -17,22 +17,18 @@ Preferrably, you should use the provided Ubuntu Packages from Github's [Release 
 
 ## Build
 
-Requirements: libcurl4-openssl-dev build-essential, libsocketcan-dev, can-utils, libzmq3-dev, libyaml-dev, meson, ninja, pkg-config, fonts-powerline, python3-pip, libelf-dev, libbsd-dev libprotobuf-c-dev
+![build.yml status](https://github.com/spaceinventor/csh/actions/workflows/build.yml/badge.svg)
+
+Requirements: libcurl4-openssl-dev build-essential, libsocketcan-dev, can-utils, libzmq3-dev, libyaml-dev, meson, ninja, pkg-config, fonts-powerline, python3-pip, libelf-dev, libbsd-dev
 
 ```
-sudo apt install libcurl4-openssl-dev git build-essential libsocketcan-dev can-utils libzmq3-dev libyaml-dev pkg-config fonts-powerline python3-pip libelf-dev libbsd-dev libprotobuf-c-dev
-sudo pip3 install meson ninja
-```
-
-Sometimes needed:
-```
-link /usr/sbin/ninja /usr/local/lib/python3.5/dist-packages/ninja
-export PATH=~/.local/bin:$PATH
+sudo apt install libcurl4-openssl-dev git build-essential libsocketcan-dev can-utils libzmq3-dev libyaml-dev pkg-config fonts-powerline pipx libelf-dev libbsd-dev python3-dev
+pipx install meson
 ```
 
 Build:
 ```
-git clone --recurse-submodules https://github.com/discosat/csh.git
+git clone --recurse-submodules https://github.com/spaceinventor/csh.git
 cd csh
 ./configure
 ./install
@@ -77,6 +73,28 @@ In a powershell, run the following command
 wsl --install
 ```
 After a reboot, you can then start the application WSL to get a virtual Ubuntu environment and follow the guidelines for installing CSH in Linux as above. Windows by default does not forward USB devices to WSL entities. To enable USB forwarding, follow the guide in https://learn.microsoft.com/en-us/windows/wsl/connect-usb.
+
+
+## Testing
+
+Host tests live in `tests/` and run through meson:
+
+```
+meson test -C builddir                  # whole suite
+meson test -C builddir hk_sniffer_tests # one test
+```
+
+`hk_sniffer_tests` is a regression for a `size_t` underflow in `hk_param_sniffer()`:
+a short packet on source port 13 (e.g. a DIPP `ring_size`/`observation_meta` RDP
+reply, which shares sport 13 with HK params) underflowed the param payload length
+and walked the mpack reader off the buffer, segfaulting the param sniffer under
+`prometheus start`. The test feeds the real function such packets and asserts they
+are skipped.
+
+Note: meson build directories are not relocatable. If the tree was first configured
+under a different absolute path (a moved or renamed checkout), `meson setup
+--reconfigure` fails with `FileNotFoundError` on a stale `meson-private` path.
+Recreate the build dir instead of reconfiguring: `rm -rf builddir && ./configure`.
 
 
 ## Extension support
