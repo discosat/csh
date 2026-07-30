@@ -1,0 +1,269 @@
+/*
+ * param_list_py.c
+ *
+ * Wrappers for lib/param/src/param/list/param_list_slash.c
+ *
+ */
+
+#include <pycsh/param_list_py.h>
+
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+#include <assert.h>
+
+#include <param/param_string.h>
+#include <param/param_list.h>
+
+#include <pycsh/pycsh.h>
+#include <pycsh/utils.h>
+#include <pycsh/parameter.h>
+
+#include "param_list_py.h"
+
+PyObject * pycsh_param_list(PyObject * self, PyObject * args, PyObject * kwds) {
+
+    int node = pycsh_dfl_node;
+    int verbosity = 1;
+    PyObject * mask_obj = NULL;
+    char * globstr = NULL;
+
+    static char *kwlist[] = {"node", "verbose", "mask", "globstr", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iiOz:list", kwlist, &node, &verbosity, &mask_obj, &globstr)) {
+        return NULL;
+    }
+
+    /* Interpret maskstring */
+    uint32_t mask = 0xFFFFFFFF;
+    if (mask_obj != NULL) {
+        if (pycsh_parse_param_mask(mask_obj, &mask) != 0) {
+            return NULL;  // Exception message set by pycsh_parse_param_mask()
+        }
+    }
+
+    if (verbosity >= 0) {
+        param_list_print(mask, node, globstr, verbosity);
+    }
+
+    return pycsh_util_parameter_list(mask, node, globstr);
+}
+
+PyObject * pycsh_param_list_download(PyObject * self, PyObject * args, PyObject * kwds) {
+
+    CSP_INIT_CHECK()
+
+    unsigned int node = pycsh_dfl_node;
+    unsigned int timeout = pycsh_dfl_timeout;
+    unsigned int version = 3;
+    int include_remotes = false;
+
+    static char *kwlist[] = {"node", "timeout", "version", "remote", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|IIIp:list_download", kwlist, &node, &timeout, &version, &include_remotes)) {
+        return NULL;  // TypeError is thrown
+    }
+
+    {  /* Allow threads during list_download() */
+        int list_download_res;
+        Py_BEGIN_ALLOW_THREADS;
+        list_download_res = param_list_download(node, timeout, version, include_remotes);
+        Py_END_ALLOW_THREADS;
+        // TODO Kevin: Downloading parameters with an incorrect version, can lead to a segmentation fault.
+        //	Had it been easier to detect when an incorrect version is used, we would've raised an exception instead.
+        if (list_download_res < 1) {  // We assume a connection error has occurred if we don't receive any parameters.
+            PyErr_Format(PyExc_ConnectionError, "No response (node=%d, timeout=%d)", node, timeout);
+            return NULL;
+        }
+    }
+
+    return pycsh_util_parameter_list(0xFFFFFFFF, node, NULL);
+
+}
+
+PyObject * pycsh_param_list_add(PyObject * self, PyObject * args, PyObject * kwds) {
+    unsigned int node;
+    unsigned int length;
+    unsigned int id;
+    char * name;
+    unsigned int type; 
+    PyObject * mask_obj = NULL;
+    char * helpstr = NULL;
+    char * unitstr = NULL;
+
+    int raise_exc = false;
+
+    static char *kwlist[] = {"node", "length", "id", "name", "type", "mask", "comment", "unit", "raise_exc", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "IIIsI|Ozzp:list_add", kwlist, &node, &length, &id, &name, &type, &mask_obj, &helpstr, &unitstr, &raise_exc)) {
+        return NULL;
+    }
+
+    switch (type) {
+        case PARAM_TYPE_UINT8:
+        case PARAM_TYPE_UINT16:
+        case PARAM_TYPE_UINT32:
+        case PARAM_TYPE_UINT64:
+        case PARAM_TYPE_INT8:
+        case PARAM_TYPE_INT16:
+        case PARAM_TYPE_INT32:
+        case PARAM_TYPE_INT64:
+        case PARAM_TYPE_XINT8:
+        case PARAM_TYPE_XINT16:
+        case PARAM_TYPE_XINT32:
+        case PARAM_TYPE_XINT64:
+        case PARAM_TYPE_FLOAT:
+        case PARAM_TYPE_DOUBLE:
+        case PARAM_TYPE_STRING:
+        case PARAM_TYPE_DATA:
+        case PARAM_TYPE_INVALID:
+            break;
+        
+        default:
+            PyErr_SetString(PyExc_InvalidParameterTypeError, "An invalid parameter type was specified during creation of a new parameter");
+            return NULL;
+    }
+
+    uint32_t mask = 0;
+    if (mask_obj != NULL) {
+        if (pycsh_parse_param_mask(mask_obj, &mask) != 0) {
+            return NULL;  // Exception message set by pycsh_parse_param_mask()
+        }
+    }
+
+    /* This guard clause above only exists to provide a more specific error message than the ones below.
+        We could remove this guard clause if we wanted. */
+    param_t * const existing_param = param_list_find_id(node, id);
+    if (raise_exc && existing_param) {
+        PyErr_Format(PyExc_LookupError, "Parameter om node %d and id %d already exists, by the name of '%s'", node, id, existing_param->name);
+        return NULL;
+    }
+
+    param_t * param = param_list_create_remote(id, node, type, mask, length, name, unitstr, helpstr, -1);
+
+    if (param == NULL) {
+        PyErr_SetString(PyExc_MemoryError, "Unable to create `param_t`");
+        return NULL;
+    }
+
+    const int _list_add_res = param_list_add(param);
+    switch (_list_add_res) {
+        case 1: {  /* Updated existing parameter */
+            param_list_destroy(param);
+            param = existing_param;
+            break;  /* All good, carry on */
+        }
+        case 0: {
+            break;  /* All good, carry on */
+        }
+        default: {
+            PyErr_Format(PyExc_ValueError, "Failed to add parameter to list, err %d", _list_add_res); 
+            return NULL;
+        }
+    }
+
+    PyObject * const param_instance AUTO_DECREF = pycsh_Parameter_from_param(&ParameterType, param, NULL, INT_MIN, pycsh_dfl_timeout, 1, 2, PY_PARAM_FREE_LIST_DESTROY);
+
+    if (param_instance == NULL) {
+        /* There's a possibility that we update an existing `param_t` here, but then fail to create the `Parameter` wrapper,
+            giving this exception a side effect. But that is probably fine, the user was going to update the parameter anyway. */
+        /* But on the contrary, it's also possible that we `list add` a new `param_t` without creating the wrapper,
+            which is a more nasty side-effect. */
+        PyErr_SetString(PyExc_MemoryError, "Unable to create `pycsh.Parameter`");
+        return NULL;
+    }
+
+    return Py_NewRef(param_instance);
+}
+
+/**
+ * @brief Version of `libparam`s `param_list_remove()` that will not destroy `param_t`s referenced by a `ParameterObject` wrapper.
+ */
+int param_list_remove_py(int node, uint8_t verbose) {
+
+    assert(Py_IsInitialized());
+    PyGILState_STATE CLEANUP_GIL gstate = PyGILState_Ensure();
+
+	int count = 0;
+
+	param_list_iterator i = {};
+	param_t * iter_param = param_list_iterate(&i);
+
+	while (iter_param) {
+
+		param_t * param = iter_param;  // Free the current parameter after we have used it to iterate.
+		iter_param = param_list_iterate(&i);
+
+		if (i.phase == 0)  // Protection against removing static parameters
+			continue;
+
+		bool match = false;  
+
+        if (*param->node <= 0) {
+            /* It is technically possible to remove a `list add`ed parameter.
+                But not a `PARAM_DEFINE_STATIC_RAM()` parameter added by an APM.
+                I also believe `param_is_static()` returns false for APM parameters.
+                So for now we simply won't allow removing local parameters at all. */
+            match = false;
+        } else if (node < 0) {
+            /* -1 means all nodes (except for 0) */
+            match = true;
+        } else if (*param->node == node) {
+			match = true;
+        }
+
+		if (match) {
+            ParameterObject *python_parameter = Parameter_wraps_param(param);
+            /* TODO Kevin: Perhaps we need a better way to distinguish between param_t that are wrapped by Parameter()s,
+                and those that are not. Currently we do this by reimplementing param_list_remove() here.
+                We need to do this, because we must not free() param_t's referenced by Parameter()s,
+                this must be done in their .tp_dealloc() instead.
+                On the contrary, param_t's that are not wrapped by a Parameter() should be free()d now,
+                before a Parameter() manages to grab a reference to it. */ 
+            if (python_parameter) {
+                param_list_remove_specific(param, verbose, 0);
+                /*TODO Kevin: Remove this `Py_DECREF()` when we merge `merge_pythonparameter_into_parameter`. */
+                Py_DECREF(python_parameter);  // The parameter list no longer holds a reference to the Parameter
+            } else {
+                param_list_remove_specific(param, verbose, 1);
+            }
+			count++;
+		}
+	}
+
+	return count;
+}
+
+PyObject * pycsh_param_list_forget(PyObject * self, PyObject * args, PyObject * kwds) {
+
+    int node = pycsh_dfl_node;
+    int verbose = 1;
+
+    static char *kwlist[] = {"node", "verbose", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ii:list_forget", kwlist, &node, &verbose))
+        return NULL;  // TypeError is thrown
+
+    const int count_removed = param_list_remove_py(node, verbose);
+
+    if (verbose >= 1) {
+        printf("Removed %i parameters\n", count_removed);
+    }
+    return Py_BuildValue("i", count_removed);
+}
+
+PyObject * pycsh_param_list_save(PyObject * self, PyObject * args, PyObject * kwds) {
+
+    char * filename = NULL;
+    int node = pycsh_dfl_node;
+    int skip_node = false;  // Make node optional, as to support adding to env node
+
+    static char *kwlist[] = {"filename", "node", "skip_node", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|zip:list_save", kwlist, &filename, &node, &skip_node)) {
+        return NULL;  // TypeError is thrown
+    }
+
+    param_list_save(filename, node, skip_node);
+
+    Py_RETURN_NONE;
+}

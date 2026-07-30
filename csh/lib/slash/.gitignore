@@ -1,0 +1,11 @@
+builddir
+.settings
+*.bin
+*.elf
+*.hex
+*.lss
+*.o
+*.d
+*.map
+*.sym
+
