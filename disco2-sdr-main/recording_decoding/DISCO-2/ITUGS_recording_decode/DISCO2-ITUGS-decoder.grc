@@ -1,0 +1,661 @@
+options:
+  parameters:
+    author: Luis Landa
+    catch_exceptions: 'True'
+    category: '[GRC Hier Blocks]'
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: Decodes many recordings done by ITU's ground station
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: disco2_itugs_decoder
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: DISCO-2 ITU-GS Example Decoder
+    window_size: (1280,1024)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: center_offset
+  id: variable_qtgui_range
+  parameters:
+    comment: Was used for centering frequencies
+    gui_hint: ''
+    label: Center Offset
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: '-30000'
+    step: '100'
+    stop: '30000'
+    value: '15000'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [792, 8.0]
+    rotation: 0
+    state: disabled
+- name: decimation
+  id: variable
+  parameters:
+    comment: 'Decimation factor.
+
+      500e3 / 10 -> 50000 Hz output
+
+      10.41 sps at 4800 baud'
+    value: '10'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [288, 8.0]
+    rotation: 0
+    state: enabled
+- name: filter_bw
+  id: variable_qtgui_range
+  parameters:
+    comment: 'Bandpass filter bandwidth (Hz)
+
+      6kHz works fine after doppler
+
+      might vary depending on recording'
+    gui_hint: ''
+    label: Filter BW
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: '2000'
+    step: '500'
+    stop: '30000'
+    value: '6000'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [456, 8.0]
+    rotation: 0
+    state: enabled
+- name: fm_gain
+  id: variable_qtgui_range
+  parameters:
+    comment: FM demodulation gain
+    gui_hint: ''
+    label: FM Gain
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: '1'
+    step: '0.5'
+    stop: '20'
+    value: '5'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [640, 8.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: '500000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [176, 8.0]
+    rotation: 0
+    state: enabled
+- name: analog_agc_xx_0
+  id: analog_agc_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    gain: '1'
+    max_gain: '65536'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    rate: 1e-4
+    reference: '1.0'
+    type: complex
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1224, 320.0]
+    rotation: 0
+    state: enabled
+- name: analog_quadrature_demod_cf_0
+  id: analog_quadrature_demod_cf
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Converts frequency deviations to amplitude
+    gain: fm_gain
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1408, 344.0]
+    rotation: 0
+    state: enabled
+- name: analog_simple_squelch_cc_0
+  id: analog_simple_squelch_cc
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha: '1'
+    comment: "-120 db\n effectively disables it, good for checking out weak signal\n\
+      - 90 db onwards\n has been succesfully used with ITU and PE0SAT recorings"
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    threshold: '-90'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [960, 352.0]
+    rotation: 0
+    state: enabled
+- name: blocks_file_source_0
+  id: blocks_file_source
+  parameters:
+    affinity: ''
+    alias: ''
+    begin_tag: pmt.PMT_NIL
+    comment: ''
+    file: /home/luisito/Development/ITU/space/decode june tests/June 2026/2026-06-26/#2
+      record/gqrx_20260626_130053_437075000_500000_fc.raw
+    length: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    repeat: 'False'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [40, 344.0]
+    rotation: 0
+    state: enabled
+- name: blocks_message_debug_1
+  id: blocks_message_debug
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    en_uvec: 'True'
+    log_level: info
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1720, 784.0]
+    rotation: 0
+    state: enabled
+- name: blocks_throttle2_0
+  id: blocks_throttle2
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Rate-limit to avoid CPU congestion with 4 MHz file
+    ignoretag: 'True'
+    limit: auto
+    maximum: '0.1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samples_per_second: samp_rate
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [248, 480.0]
+    rotation: 0
+    state: bypassed
+- name: digital_binary_slicer_fb_1
+  id: digital_binary_slicer_fb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [752, 616.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_0_0
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nHDLC Bit De-stuffer\nRemoves one bit preceded by five consecutive\
+      \ ones (HDLC bit-stuffing)\n\"\"\"\n\nfrom gnuradio import gr\nimport numpy\
+      \ as np\nimport pmt\n\nclass msg_block(gr.basic_block):\n    def __init__(self):\n\
+      \        gr.basic_block.__init__(\n            self,\n            name=\"Bit\
+      \ de-stuffer\",\n            in_sig=None,\n            out_sig=None)\n\n   \
+      \     self.message_port_register_in(pmt.intern('msg_in'))\n        self.message_port_register_out(pmt.intern('pdu_out'))\n\
+      \        self.set_msg_handler(pmt.intern('msg_in'), self.handle_msg)\n\n   \
+      \ def handle_msg(self, msg):\n        bitstream = np.array(pmt.to_python(msg))\n\
+      \n        compare_array = np.array([1,1,1,1,1])\n        for i in range(len(bitstream)-5):\n\
+      \            if np.array_equal(bitstream[i:i+5], compare_array):\n         \
+      \       bitstream[i+5] = 2\n\n        bitstream_destuffed = np.delete(bitstream,\
+      \ np.where(bitstream == 2))\n\n        outgoing_msg = pmt.init_u8vector(len(bitstream_destuffed),\
+      \ (bitstream_destuffed))\n        pdu = pmt.cons(pmt.make_dict(), outgoing_msg)\n\
+      \        self.message_port_pub(pmt.intern('pdu_out'), pdu)"
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    _io_cache: ('Bit de-stuffer', 'msg_block', [], [('msg_in', 'message', 1)], [('pdu_out',
+      'message', 1)], '', [])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [752, 816.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_0_1
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nCCSDS Additive Descrambler\nCompliant with CCSDS 131.0-B-5\
+      \ Section 10\nApplying twice returns the original message.\n\"\"\"\n\nimport\
+      \ numpy as np\nfrom gnuradio import gr\nimport pmt\n\n\nclass blk(gr.sync_block):\n\
+      \    def __init__(self):\n        gr.sync_block.__init__(\n            self,\n\
+      \            name='CCSDS Additive Scrambler',\n            in_sig=None,\n  \
+      \          out_sig=None)\n\n        self.pn_lut = np.zeros(255, dtype=np.uint8)\n\
+      \        self.generate_pn_lut()\n\n        self.message_port_register_in(pmt.intern('PDU_in'))\n\
+      \        self.message_port_register_out(pmt.intern('PDU_out'))\n        self.set_msg_handler(pmt.intern('PDU_in'),\
+      \ self.handle_msg)\n\n    def handle_msg(self, msg):\n        bitstream = np.array(pmt.to_python(pmt.cdr(msg)))\n\
+      \        scr_bitstream = np.zeros(len(bitstream), dtype=np.uint8)\n        for\
+      \ i in range(len(bitstream)):\n            scr_bitstream[i] = np.uint8(bitstream[i])\
+      \ ^ np.uint8(self.pn_lut[i%255])\n\n        outgoing_msg = pmt.init_u8vector(len(scr_bitstream),\
+      \ (scr_bitstream))\n        pdu = pmt.cons(pmt.make_dict(), outgoing_msg)\n\
+      \        self.message_port_pub(pmt.intern('PDU_out'), pdu)\n\n    def generate_pn_lut(self):\n\
+      \        sr = 0b11111111\n        for i in range(255):\n            self.pn_lut[i]\
+      \ = sr & 1\n            nb = self.pn_xor(sr)\n            sr = sr >> 1\n   \
+      \         sr = sr | (nb << 7)\n\n    def pn_xor(self, sr):\n        return (((sr\
+      \ & 0b01) >> 0) ^ ((sr & 0b00001000) >> 3) ^ ((sr & 0b00100000) >> 5) ^ ((sr\
+      \ & 0b10000000) >> 7)) & 1"
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    _io_cache: ('CCSDS Additive Scrambler', 'blk', [], [('PDU_in', 'message', 1)],
+      [('PDU_out', 'message', 1)], '', [])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [960, 816.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_1
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nHDLC Deframer\nRemoves the trailing HDLC flag from sync_to_pdu\
+      \ output\n\"\"\"\n\nfrom gnuradio import gr\nimport numpy as np\nimport pmt\n\
+      \nclass msg_block(gr.basic_block):\n    def __init__(self):\n        gr.basic_block.__init__(\n\
+      \            self,\n            name=\"HDLC Deframer\",\n            in_sig=None,\n\
+      \            out_sig=None)\n\n        self.message_port_register_in(pmt.intern('msg_in'))\n\
+      \        self.message_port_register_out(pmt.intern('msg_out'))\n        self.set_msg_handler(pmt.intern('msg_in'),\
+      \ self.handle_msg)\n\n    def handle_msg(self, msg):\n        bitstream = np.array(pmt.to_python(pmt.cdr(msg)))\n\
+      \n        hdlc_flag = np.array([0,1,1,1,1,1,1,0])\n        hdlc_index = 0\n\
+      \        for i in range(len(bitstream)-len(hdlc_flag)):\n            bitstream_snippet\
+      \ = bitstream[i:i+len(hdlc_flag)]\n            if np.array_equal(bitstream_snippet,\
+      \ hdlc_flag):\n                hdlc_index = i\n                break\n\n   \
+      \     hdlc_frame = bitstream[0:hdlc_index]\n        outgoing_msg = pmt.to_pmt(hdlc_frame)\n\
+      \        self.message_port_pub(pmt.intern('msg_out'), outgoing_msg)"
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    _io_cache: ('HDLC Deframer', 'msg_block', [], [('msg_in', 'message', 1)], [('msg_out',
+      'message', 1)], '', [])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [536, 816.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_2
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nPack 8 bits into bytes\nDrops frames shorter than 32 bytes\
+      \ (noise false triggers)\n\"\"\"\n\nimport numpy as np\nfrom gnuradio import\
+      \ gr\nimport pmt\n\n\nclass blk(gr.sync_block):\n    def __init__(self):\n \
+      \       gr.sync_block.__init__(\n            self,\n            name='Pack 8\
+      \ bits',\n            in_sig=None,\n            out_sig=None)\n\n        self.message_port_register_in(pmt.intern('PDU_in'))\n\
+      \        self.message_port_register_out(pmt.intern('PDU_out'))\n        self.set_msg_handler(pmt.intern('PDU_in'),\
+      \ self.handle_msg)\n\n    def handle_msg(self, msg):\n        try:\n       \
+      \     bitstream = np.array(pmt.to_python(pmt.cdr(msg)))\n        except Exception:\n\
+      \            return\n        if len(bitstream) < 256:\n            return\n\
+      \        bytestream = np.packbits(bitstream)\n        if len(bytestream) < 32:\n\
+      \            return\n\n        outgoing_msg = pmt.init_u8vector(len(bytestream),\
+      \ (bytestream))\n        pdu = pmt.cons(pmt.make_dict(), outgoing_msg)\n   \
+      \     self.message_port_pub(pmt.intern('PDU_out'), pdu)"
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    _io_cache: ('Pack 8 bits', 'blk', [], [('PDU_in', 'message', 1)], [('PDU_out',
+      'message', 1)], '', [])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1240, 816.0]
+    rotation: 0
+    state: enabled
+- name: freq_xlating_fir_filter_xxx_0
+  id: freq_xlating_fir_filter_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    center_freq: '0'
+    comment: 'Decimation + narrow bandwitch filter are applied here.
+
+      After this point the sample_rate reduces to:
+
+
+      original_samp_rate/decimation
+
+
+      500000/10
+
+      =50000 from here on out'
+    decim: decimation
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samp_rate: samp_rate
+    taps: firdes.complex_band_pass(1, samp_rate, -filter_bw/2, filter_bw/2, 1000)
+    type: ccc
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [664, 336.0]
+    rotation: 0
+    state: enabled
+- name: qtgui_sink_x_0
+  id: qtgui_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    bw: '20000'
+    comment: ''
+    fc: '437075000'
+    fftsize: '2048'
+    gui_hint: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: After-filter GUI Sink
+    plotconst: 'True'
+    plotfreq: 'True'
+    plottime: 'True'
+    plotwaterfall: 'True'
+    rate: '100'
+    showports: 'False'
+    showrf: 'True'
+    type: complex
+    wintype: window.WIN_BLACKMAN_hARRIS
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1072, 168.0]
+    rotation: 0
+    state: enabled
+- name: qtgui_waterfall_sink_x_0
+  id: qtgui_waterfall_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    axislabels: 'True'
+    bw: samp_rate
+    color1: '0'
+    color10: '0'
+    color2: '0'
+    color3: '0'
+    color4: '0'
+    color5: '0'
+    color6: '0'
+    color7: '0'
+    color8: '0'
+    color9: '0'
+    comment: ''
+    fc: '437060000'
+    fftsize: '2048'
+    freqhalf: 'True'
+    grid: 'False'
+    gui_hint: ''
+    int_max: '10'
+    int_min: '-140'
+    label1: ''
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    legend: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '""'
+    nconnections: '1'
+    showports: 'False'
+    type: complex
+    update_time: '0.10'
+    wintype: window.WIN_BLACKMAN_hARRIS
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [672, 208.0]
+    rotation: 0
+    state: disabled
+- name: satellites_decode_rs_ccsds_0
+  id: satellites_decode_rs_ccsds
+  parameters:
+    affinity: ''
+    alias: ''
+    basis: 'False'
+    comment: ''
+    interleave: '1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1424, 800.0]
+    rotation: 0
+    state: enabled
+- name: satellites_doppler_correction_0
+  id: satellites_doppler_correction
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: "file format: unix_timestamp doppler_hz\n\nThe value for \"Start Time\"\
+      \ \nmust be the first unix_timestamp\nof the recordings doppler.txt file"
+    file: /home/luisito/Development/ITU/space/decode june tests/June 2026/2026-06-26/#2
+      record/gqrx_20260626_130053_437075000_500000_fc_doppler.txt
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samp_rate: samp_rate
+    t0: '1782478853.000000'
+    timesync_tag: '""'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [416, 352.0]
+    rotation: 0
+    state: enabled
+- name: satellites_fsk_demodulator_1
+  id: satellites_fsk_demodulator
+  parameters:
+    affinity: ''
+    alias: ''
+    baudrate: '4800'
+    comment: Clock recovery and soft bit output
+    iq: 'False'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    options: '""'
+    samp_rate: samp_rate/decimation
+    subaudio: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [480, 592.0]
+    rotation: 0
+    state: enabled
+- name: satellites_sync_to_pdu_0
+  id: satellites_sync_to_pdu
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: "Find DISCO-2 sync word and create PDU. \nThreshold=2 for weak signal.\n\
+      \nWas 689 length which worked for terrestrial ping\nBut recordings only started\
+      \ decoding after I set this\nto 1200. Testing show any number up to 900 is good\n\
+      haven't tested further"
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    packlen: '1200'
+    sync: '"0101010101010101010101010111111010101010"'
+    threshold: '2'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [904, 592.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: baseband
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1632, 344.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_1
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: synced_message
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1176, 608.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: baseband
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [56, 608.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_1
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: 'From here: FEC and descrambling etc'
+    stream_id: synced_message
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [64, 808.0]
+    rotation: 0
+    state: enabled
+
+connections:
+- [analog_agc_xx_0, '0', analog_quadrature_demod_cf_0, '0']
+- [analog_quadrature_demod_cf_0, '0', virtual_sink_0, '0']
+- [analog_simple_squelch_cc_0, '0', analog_agc_xx_0, '0']
+- [blocks_file_source_0, '0', blocks_throttle2_0, '0']
+- [blocks_throttle2_0, '0', satellites_doppler_correction_0, '0']
+- [digital_binary_slicer_fb_1, '0', satellites_sync_to_pdu_0, '0']
+- [epy_block_0_0, pdu_out, epy_block_0_1, PDU_in]
+- [epy_block_0_1, PDU_out, epy_block_2, PDU_in]
+- [epy_block_1, msg_out, epy_block_0_0, msg_in]
+- [epy_block_2, PDU_out, satellites_decode_rs_ccsds_0, in]
+- [freq_xlating_fir_filter_xxx_0, '0', analog_simple_squelch_cc_0, '0']
+- [freq_xlating_fir_filter_xxx_0, '0', qtgui_sink_x_0, '0']
+- [satellites_decode_rs_ccsds_0, out, blocks_message_debug_1, print]
+- [satellites_doppler_correction_0, '0', freq_xlating_fir_filter_xxx_0, '0']
+- [satellites_doppler_correction_0, '0', qtgui_waterfall_sink_x_0, '0']
+- [satellites_fsk_demodulator_1, '0', digital_binary_slicer_fb_1, '0']
+- [satellites_sync_to_pdu_0, out, virtual_sink_1, '0']
+- [virtual_source_0, '0', satellites_fsk_demodulator_1, '0']
+- [virtual_source_1, '0', epy_block_1, msg_in]
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0
